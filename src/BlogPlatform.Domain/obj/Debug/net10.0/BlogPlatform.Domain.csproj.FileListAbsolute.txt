@@ -1,0 +1,11 @@
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/bin/Debug/net10.0/BlogPlatform.Domain.deps.json
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/bin/Debug/net10.0/BlogPlatform.Domain.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/bin/Debug/net10.0/BlogPlatform.Domain.pdb
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/BlogPlatform.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/BlogPlatform.Domain.AssemblyInfoInputs.cache
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/BlogPlatform.Domain.AssemblyInfo.cs
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/BlogPlatform.Domain.csproj.CoreCompileInputs.cache
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/BlogPlatform.Domain.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/refint/BlogPlatform.Domain.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/BlogPlatform.Domain.pdb
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Domain/obj/Debug/net10.0/ref/BlogPlatform.Domain.dll
