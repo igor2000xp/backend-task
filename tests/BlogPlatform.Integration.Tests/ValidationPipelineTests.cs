@@ -20,7 +20,8 @@ public class ValidationPipelineTests
         var invalidBlog = new BlogEntity
         {
             Name = "Too long name exceeding fifty character maximum limit here",
-            IsActive = true
+            IsActive = true,
+            UserId = "test-user-id" // Required for ownership
         };
         
         // Act & Assert
@@ -50,7 +51,8 @@ public class ValidationPipelineTests
         var invalidBlog = new BlogEntity
         {
             Name = "Short",
-            IsActive = true
+            IsActive = true,
+            UserId = "test-user-id"
         };
         
         // Act & Assert
@@ -78,7 +80,8 @@ public class ValidationPipelineTests
         var invalidBlog = new BlogEntity
         {
             Name = string.Empty, // Required field is empty
-            IsActive = true
+            IsActive = true,
+            UserId = "test-user-id"
         };
         
         // Act & Assert
@@ -106,7 +109,8 @@ public class ValidationPipelineTests
         var validBlog = new BlogEntity
         {
             Name = "Valid Blog Name",
-            IsActive = true
+            IsActive = true,
+            UserId = "test-user-id"
         };
         
         // Act
@@ -128,7 +132,7 @@ public class ValidationPipelineTests
         using var context = new BlogsContext(options);
         
         // Create a valid blog first
-        var blog = new BlogEntity { Name = "Valid Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Valid Blog Name", IsActive = true, UserId = "test-user-id" };
         context.Blogs.Add(blog);
         await context.SaveChangesAsync();
         
@@ -139,7 +143,8 @@ public class ValidationPipelineTests
             Name = "Valid Post Name",
             Content = longContent,
             ParentId = blog.BlogId,
-            Created = DateTime.UtcNow
+            Created = DateTime.UtcNow,
+            UserId = "test-user-id"
         };
         
         // Act & Assert
@@ -168,7 +173,7 @@ public class ValidationPipelineTests
         using var context = new BlogsContext(options);
         
         // Create a valid blog
-        var blog = new BlogEntity { Name = "Valid Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Valid Blog Name", IsActive = true, UserId = "test-user-id" };
         context.Blogs.Add(blog);
         await context.SaveChangesAsync();
         

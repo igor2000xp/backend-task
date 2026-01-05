@@ -1,49 +1,46 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using BlogPlatform.Application.DTOs;
-using BlogPlatform.Infrastructure.Data;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using BlogPlatform.Application.DTOs.Auth;
+using BlogPlatform.Integration.Tests.Helpers;
 
 namespace BlogPlatform.Integration.Tests;
 
 [TestClass]
 public class BlogEndToEndTests
 {
-    private WebApplicationFactory<Program> _factory = null!;
+    private CustomWebApplicationFactory _factory = null!;
     private HttpClient _client = null!;
+    private AuthTestHelper _authHelper = null!;
+    private string? _accessToken;
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     
     [TestInitialize]
-    public void Setup()
+    public async Task Setup()
     {
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    // Remove all DbContext-related service descriptors
-                    var descriptorsToRemove = services
-                        .Where(d => d.ServiceType == typeof(DbContextOptions<BlogsContext>) ||
-                                    d.ServiceType == typeof(DbContextOptions) ||
-                                    d.ServiceType == typeof(BlogsContext))
-                        .ToList();
-                    
-                    foreach (var descriptor in descriptorsToRemove)
-                    {
-                        services.Remove(descriptor);
-                    }
-                    
-                    // Add InMemory database for integration tests
-                    services.AddDbContext<BlogsContext>(options =>
-                    {
-                        options.UseInMemoryDatabase($"IntegrationTests_{Guid.NewGuid()}");
-                    }, ServiceLifetime.Scoped, ServiceLifetime.Scoped);
-                });
-            });
-        
+        _factory = new CustomWebApplicationFactory();
         _client = _factory.CreateClient();
+        _authHelper = new AuthTestHelper(_client);
+        
+        // Register and get token for authenticated tests
+        var authResult = await _authHelper.RegisterAsync($"testuser_{Guid.NewGuid()}@test.com", "Test@12345", "Test User");
+        _accessToken = authResult?.AccessToken;
+    }
+    
+    private HttpRequestMessage CreateAuthenticatedRequest(HttpMethod method, string uri, object? content = null)
+    {
+        var request = new HttpRequestMessage(method, uri);
+        if (_accessToken != null)
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+        }
+        if (content != null)
+        {
+            request.Content = new StringContent(JsonSerializer.Serialize(content), Encoding.UTF8, "application/json");
+        }
+        return request;
     }
     
     [TestCleanup]
@@ -57,20 +54,17 @@ public class BlogEndToEndTests
     public async Task CreateBlog_ValidData_ShouldReturnCreated()
     {
         // Arrange
-        var request = new CreateBlogRequest { Name = "Integration Test Blog", IsActive = true };
-        var content = new StringContent(
-            JsonSerializer.Serialize(request),
-            Encoding.UTF8,
-            "application/json");
+        var blogData = new { Name = "Integration Test Blog", IsActive = true };
+        var request = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blogData);
         
         // Act
-        var response = await _client.PostAsync("/api/blogs", content);
+        var response = await _client.SendAsync(request);
         
         // Assert
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
         var blogDto = await JsonSerializer.DeserializeAsync<BlogDto>(
             await response.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         Assert.IsNotNull(blogDto);
         Assert.AreEqual("Integration Test Blog", blogDto.Name);
         Assert.IsTrue(blogDto.IsActive);
@@ -80,14 +74,11 @@ public class BlogEndToEndTests
     public async Task CreateBlog_InvalidName_ShouldReturnBadRequest()
     {
         // Arrange
-        var request = new CreateBlogRequest { Name = "Bad", IsActive = true };
-        var content = new StringContent(
-            JsonSerializer.Serialize(request),
-            Encoding.UTF8,
-            "application/json");
+        var blogData = new { Name = "Bad", IsActive = true };
+        var request = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blogData);
         
         // Act
-        var response = await _client.PostAsync("/api/blogs", content);
+        var response = await _client.SendAsync(request);
         
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
@@ -97,12 +88,9 @@ public class BlogEndToEndTests
     public async Task GetBlogs_AfterCreating_ShouldReturnBlogs()
     {
         // Arrange - Create a blog first
-        var createRequest = new CreateBlogRequest { Name = "Test Blog Name", IsActive = true };
-        var createContent = new StringContent(
-            JsonSerializer.Serialize(createRequest),
-            Encoding.UTF8,
-            "application/json");
-        await _client.PostAsync("/api/blogs", createContent);
+        var blogData = new { Name = "Test Blog Name", IsActive = true };
+        var createRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blogData);
+        await _client.SendAsync(createRequest);
         
         // Act
         var response = await _client.GetAsync("/api/blogs");
@@ -111,7 +99,7 @@ public class BlogEndToEndTests
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var blogs = await JsonSerializer.DeserializeAsync<List<BlogDto>>(
             await response.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         Assert.IsNotNull(blogs);
         Assert.IsTrue(blogs.Count > 0);
     }
@@ -120,15 +108,12 @@ public class BlogEndToEndTests
     public async Task GetBlogById_ExistingBlog_ShouldReturnBlog()
     {
         // Arrange - Create a blog first
-        var createRequest = new CreateBlogRequest { Name = "Test Blog Name", IsActive = true };
-        var createContent = new StringContent(
-            JsonSerializer.Serialize(createRequest),
-            Encoding.UTF8,
-            "application/json");
-        var createResponse = await _client.PostAsync("/api/blogs", createContent);
+        var blogData = new { Name = "Test Blog Name", IsActive = true };
+        var createRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blogData);
+        var createResponse = await _client.SendAsync(createRequest);
         var createdBlog = await JsonSerializer.DeserializeAsync<BlogDto>(
             await createResponse.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         
         // Act
         var response = await _client.GetAsync($"/api/blogs/{createdBlog!.Id}");
@@ -137,7 +122,7 @@ public class BlogEndToEndTests
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var blog = await JsonSerializer.DeserializeAsync<BlogDto>(
             await response.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         Assert.IsNotNull(blog);
         Assert.AreEqual(createdBlog.Id, blog.Id);
     }
@@ -156,24 +141,18 @@ public class BlogEndToEndTests
     public async Task UpdateBlog_ValidData_ShouldReturnNoContent()
     {
         // Arrange - Create a blog first
-        var createRequest = new CreateBlogRequest { Name = "Original Name", IsActive = true };
-        var createContent = new StringContent(
-            JsonSerializer.Serialize(createRequest),
-            Encoding.UTF8,
-            "application/json");
-        var createResponse = await _client.PostAsync("/api/blogs", createContent);
+        var blogData = new { Name = "Original Name", IsActive = true };
+        var createRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blogData);
+        var createResponse = await _client.SendAsync(createRequest);
         var createdBlog = await JsonSerializer.DeserializeAsync<BlogDto>(
             await createResponse.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         
-        var updateRequest = new UpdateBlogRequest { Name = "Updated Blog Name", IsActive = false };
-        var updateContent = new StringContent(
-            JsonSerializer.Serialize(updateRequest),
-            Encoding.UTF8,
-            "application/json");
+        var updateData = new { Name = "Updated Blog Name", IsActive = false };
+        var updateRequest = CreateAuthenticatedRequest(HttpMethod.Put, $"/api/blogs/{createdBlog!.Id}", updateData);
         
         // Act
-        var response = await _client.PutAsync($"/api/blogs/{createdBlog!.Id}", updateContent);
+        var response = await _client.SendAsync(updateRequest);
         
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
@@ -183,18 +162,16 @@ public class BlogEndToEndTests
     public async Task DeleteBlog_ExistingBlog_ShouldReturnNoContent()
     {
         // Arrange - Create a blog first
-        var createRequest = new CreateBlogRequest { Name = "Test Blog Name", IsActive = true };
-        var createContent = new StringContent(
-            JsonSerializer.Serialize(createRequest),
-            Encoding.UTF8,
-            "application/json");
-        var createResponse = await _client.PostAsync("/api/blogs", createContent);
+        var blogData = new { Name = "Test Blog Name", IsActive = true };
+        var createRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blogData);
+        var createResponse = await _client.SendAsync(createRequest);
         var createdBlog = await JsonSerializer.DeserializeAsync<BlogDto>(
             await createResponse.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         
         // Act
-        var response = await _client.DeleteAsync($"/api/blogs/{createdBlog!.Id}");
+        var deleteRequest = CreateAuthenticatedRequest(HttpMethod.Delete, $"/api/blogs/{createdBlog!.Id}");
+        var response = await _client.SendAsync(deleteRequest);
         
         // Assert
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
@@ -204,34 +181,28 @@ public class BlogEndToEndTests
     public async Task CreatePostForBlog_ValidData_ShouldLinkCorrectly()
     {
         // Arrange - Create blog first
-        var blogRequest = new CreateBlogRequest { Name = "Blog For Posts", IsActive = true };
-        var blogContent = new StringContent(
-            JsonSerializer.Serialize(blogRequest),
-            Encoding.UTF8,
-            "application/json");
-        var blogResponse = await _client.PostAsync("/api/blogs", blogContent);
+        var blogData = new { Name = "Blog For Posts", IsActive = true };
+        var blogRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blogData);
+        var blogResponse = await _client.SendAsync(blogRequest);
         var blog = await JsonSerializer.DeserializeAsync<BlogDto>(
             await blogResponse.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         
         // Act - Create post
-        var postRequest = new CreatePostRequest
+        var postData = new
         {
             Name = "Test Post Name",
             Content = "This is test content for the post.",
             BlogId = blog!.Id
         };
-        var postContent = new StringContent(
-            JsonSerializer.Serialize(postRequest),
-            Encoding.UTF8,
-            "application/json");
-        var postResponse = await _client.PostAsync("/api/posts", postContent);
+        var postRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/api/posts", postData);
+        var postResponse = await _client.SendAsync(postRequest);
         
         // Assert
         Assert.AreEqual(HttpStatusCode.Created, postResponse.StatusCode);
         var post = await JsonSerializer.DeserializeAsync<PostDto>(
             await postResponse.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         Assert.IsNotNull(post);
         Assert.AreEqual(blog.Id, post.BlogId);
     }
@@ -240,19 +211,16 @@ public class BlogEndToEndTests
     public async Task CreatePost_NonExistingBlog_ShouldReturnNotFound()
     {
         // Arrange
-        var postRequest = new CreatePostRequest
+        var postData = new
         {
             Name = "Test Post Name",
             Content = "Test content",
             BlogId = 999
         };
-        var postContent = new StringContent(
-            JsonSerializer.Serialize(postRequest),
-            Encoding.UTF8,
-            "application/json");
+        var postRequest = CreateAuthenticatedRequest(HttpMethod.Post, "/api/posts", postData);
         
         // Act
-        var postResponse = await _client.PostAsync("/api/posts", postContent);
+        var postResponse = await _client.SendAsync(postRequest);
         
         // Assert
         Assert.AreEqual(HttpStatusCode.NotFound, postResponse.StatusCode);
@@ -262,39 +230,33 @@ public class BlogEndToEndTests
     public async Task GetPostsByBlogId_MultiplePost_ShouldReturnOnlyBlogPosts()
     {
         // Arrange - Create two blogs with posts
-        var blog1Request = new CreateBlogRequest { Name = "First Blog Name", IsActive = true };
-        var blog1Content = new StringContent(
-            JsonSerializer.Serialize(blog1Request),
-            Encoding.UTF8,
-            "application/json");
-        var blog1Response = await _client.PostAsync("/api/blogs", blog1Content);
+        var blog1Data = new { Name = "First Blog Name", IsActive = true };
+        var blog1Request = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blog1Data);
+        var blog1Response = await _client.SendAsync(blog1Request);
         var blog1 = await JsonSerializer.DeserializeAsync<BlogDto>(
             await blog1Response.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         
-        var blog2Request = new CreateBlogRequest { Name = "Second Blog Name", IsActive = true };
-        var blog2Content = new StringContent(
-            JsonSerializer.Serialize(blog2Request),
-            Encoding.UTF8,
-            "application/json");
-        var blog2Response = await _client.PostAsync("/api/blogs", blog2Content);
+        var blog2Data = new { Name = "Second Blog Name", IsActive = true };
+        var blog2Request = CreateAuthenticatedRequest(HttpMethod.Post, "/api/blogs", blog2Data);
+        var blog2Response = await _client.SendAsync(blog2Request);
         var blog2 = await JsonSerializer.DeserializeAsync<BlogDto>(
             await blog2Response.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         
         // Create posts for blog1
-        var post1Request = new CreatePostRequest { Name = "Post 1 Blog 1", Content = "Content", BlogId = blog1!.Id };
-        await _client.PostAsync("/api/posts", new StringContent(
-            JsonSerializer.Serialize(post1Request), Encoding.UTF8, "application/json"));
+        var post1Data = new { Name = "Post 1 Blog 1", Content = "Content", BlogId = blog1!.Id };
+        var post1Request = CreateAuthenticatedRequest(HttpMethod.Post, "/api/posts", post1Data);
+        await _client.SendAsync(post1Request);
         
-        var post2Request = new CreatePostRequest { Name = "Post 2 Blog 1", Content = "Content", BlogId = blog1.Id };
-        await _client.PostAsync("/api/posts", new StringContent(
-            JsonSerializer.Serialize(post2Request), Encoding.UTF8, "application/json"));
+        var post2Data = new { Name = "Post 2 Blog 1", Content = "Content", BlogId = blog1.Id };
+        var post2Request = CreateAuthenticatedRequest(HttpMethod.Post, "/api/posts", post2Data);
+        await _client.SendAsync(post2Request);
         
         // Create post for blog2
-        var post3Request = new CreatePostRequest { Name = "Post 1 Blog 2", Content = "Content", BlogId = blog2!.Id };
-        await _client.PostAsync("/api/posts", new StringContent(
-            JsonSerializer.Serialize(post3Request), Encoding.UTF8, "application/json"));
+        var post3Data = new { Name = "Post 1 Blog 2", Content = "Content", BlogId = blog2!.Id };
+        var post3Request = CreateAuthenticatedRequest(HttpMethod.Post, "/api/posts", post3Data);
+        await _client.SendAsync(post3Request);
         
         // Act
         var response = await _client.GetAsync($"/api/posts/blog/{blog1.Id}");
@@ -303,7 +265,7 @@ public class BlogEndToEndTests
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var posts = await JsonSerializer.DeserializeAsync<List<PostDto>>(
             await response.Content.ReadAsStreamAsync(),
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            JsonOptions);
         Assert.IsNotNull(posts);
         Assert.AreEqual(2, posts.Count);
         Assert.IsTrue(posts.All(p => p.BlogId == blog1.Id));

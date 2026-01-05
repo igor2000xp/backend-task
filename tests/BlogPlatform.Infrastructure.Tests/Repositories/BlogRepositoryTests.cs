@@ -8,6 +8,8 @@ namespace BlogPlatform.Infrastructure.Tests.Repositories;
 [TestClass]
 public class BlogRepositoryTests
 {
+    private const string TestUserId = "test-user-id-123";
+
     [TestMethod]
     public async Task CreateAsync_ValidBlog_ShouldReturnBlogWithId()
     {
@@ -18,7 +20,7 @@ public class BlogRepositoryTests
         
         using var context = new BlogsContext(options);
         var repository = new BlogRepository(context);
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         
         // Act
         var result = await repository.CreateAsync(blog);
@@ -40,7 +42,7 @@ public class BlogRepositoryTests
         using var context = new BlogsContext(options);
         var repository = new BlogRepository(context);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         await repository.CreateAsync(blog);
         
         // Act
@@ -81,8 +83,8 @@ public class BlogRepositoryTests
         using var context = new BlogsContext(options);
         var repository = new BlogRepository(context);
         
-        await repository.CreateAsync(new BlogEntity { Name = "First Blog Name", IsActive = true });
-        await repository.CreateAsync(new BlogEntity { Name = "Second Blog Name", IsActive = false });
+        await repository.CreateAsync(new BlogEntity { Name = "First Blog Name", IsActive = true, UserId = TestUserId });
+        await repository.CreateAsync(new BlogEntity { Name = "Second Blog Name", IsActive = false, UserId = TestUserId });
         
         // Act
         var result = await repository.GetAllAsync();
@@ -103,7 +105,7 @@ public class BlogRepositoryTests
         using var context = new BlogsContext(options);
         var repository = new BlogRepository(context);
         
-        var blog = new BlogEntity { Name = "Original Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Original Name", IsActive = true, UserId = TestUserId };
         await repository.CreateAsync(blog);
         
         // Act
@@ -129,7 +131,7 @@ public class BlogRepositoryTests
         using var context = new BlogsContext(options);
         var repository = new BlogRepository(context);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         await repository.CreateAsync(blog);
         
         // Act
@@ -151,7 +153,7 @@ public class BlogRepositoryTests
         using var context = new BlogsContext(options);
         var repository = new BlogRepository(context);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         await repository.CreateAsync(blog);
         
         var post = new PostEntity 
@@ -159,6 +161,7 @@ public class BlogRepositoryTests
             Name = "Test Post Name", 
             Content = "Test content",
             ParentId = blog.BlogId,
+            UserId = TestUserId,
             Created = DateTime.UtcNow
         };
         context.Posts.Add(post);
@@ -173,4 +176,3 @@ public class BlogRepositoryTests
         Assert.AreEqual(1, result.Articles.Count);
     }
 }
-

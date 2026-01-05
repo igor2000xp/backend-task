@@ -19,6 +19,17 @@ public class PostEntity
     public DateTime Created { get; set; }
     
     public DateTime? Updated { get; set; }
+    
+    /// <summary>
+    /// The ID of the user who created this post
+    /// </summary>
+    [Required]
+    public string UserId { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Navigation property to the author
+    /// </summary>
+    public ApplicationUser User { get; set; } = null!;
 
     // Navigation property required for explicit relationship mapping
     public BlogEntity Blog { get; set; } = null!;

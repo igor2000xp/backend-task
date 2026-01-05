@@ -8,6 +8,8 @@ namespace BlogPlatform.Infrastructure.Tests.Repositories;
 [TestClass]
 public class PostRepositoryTests
 {
+    private const string TestUserId = "test-user-id-123";
+
     [TestMethod]
     public async Task CreateAsync_ValidPost_ShouldReturnPostWithId()
     {
@@ -20,12 +22,13 @@ public class PostRepositoryTests
         var blogRepo = new BlogRepository(context);
         var postRepo = new PostRepository(context);
         
-        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true });
+        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId });
         var post = new PostEntity 
         { 
             Name = "Test Post Name", 
             Content = "Test content for the post",
-            ParentId = blog.BlogId
+            ParentId = blog.BlogId,
+            UserId = TestUserId
         };
         
         // Act
@@ -50,12 +53,13 @@ public class PostRepositoryTests
         var blogRepo = new BlogRepository(context);
         var postRepo = new PostRepository(context);
         
-        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true });
+        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId });
         var post = await postRepo.CreateAsync(new PostEntity 
         { 
             Name = "Test Post Name", 
             Content = "Test content",
-            ParentId = blog.BlogId
+            ParentId = blog.BlogId,
+            UserId = TestUserId
         });
         
         // Act
@@ -98,12 +102,12 @@ public class PostRepositoryTests
         var blogRepo = new BlogRepository(context);
         var postRepo = new PostRepository(context);
         
-        var blog1 = await blogRepo.CreateAsync(new BlogEntity { Name = "First Blog Name", IsActive = true });
-        var blog2 = await blogRepo.CreateAsync(new BlogEntity { Name = "Second Blog Name", IsActive = true });
+        var blog1 = await blogRepo.CreateAsync(new BlogEntity { Name = "First Blog Name", IsActive = true, UserId = TestUserId });
+        var blog2 = await blogRepo.CreateAsync(new BlogEntity { Name = "Second Blog Name", IsActive = true, UserId = TestUserId });
         
-        await postRepo.CreateAsync(new PostEntity { Name = "Post 1 Blog 1", Content = "Content", ParentId = blog1.BlogId });
-        await postRepo.CreateAsync(new PostEntity { Name = "Post 2 Blog 1", Content = "Content", ParentId = blog1.BlogId });
-        await postRepo.CreateAsync(new PostEntity { Name = "Post 1 Blog 2", Content = "Content", ParentId = blog2.BlogId });
+        await postRepo.CreateAsync(new PostEntity { Name = "Post 1 Blog 1", Content = "Content", ParentId = blog1.BlogId, UserId = TestUserId });
+        await postRepo.CreateAsync(new PostEntity { Name = "Post 2 Blog 1", Content = "Content", ParentId = blog1.BlogId, UserId = TestUserId });
+        await postRepo.CreateAsync(new PostEntity { Name = "Post 1 Blog 2", Content = "Content", ParentId = blog2.BlogId, UserId = TestUserId });
         
         // Act
         var result = await postRepo.GetByBlogIdAsync(blog1.BlogId);
@@ -126,10 +130,10 @@ public class PostRepositoryTests
         var blogRepo = new BlogRepository(context);
         var postRepo = new PostRepository(context);
         
-        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true });
+        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId });
         
-        await postRepo.CreateAsync(new PostEntity { Name = "First Post Name", Content = "Content", ParentId = blog.BlogId });
-        await postRepo.CreateAsync(new PostEntity { Name = "Second Post Name", Content = "Content", ParentId = blog.BlogId });
+        await postRepo.CreateAsync(new PostEntity { Name = "First Post Name", Content = "Content", ParentId = blog.BlogId, UserId = TestUserId });
+        await postRepo.CreateAsync(new PostEntity { Name = "Second Post Name", Content = "Content", ParentId = blog.BlogId, UserId = TestUserId });
         
         // Act
         var result = await postRepo.GetAllAsync();
@@ -151,12 +155,13 @@ public class PostRepositoryTests
         var blogRepo = new BlogRepository(context);
         var postRepo = new PostRepository(context);
         
-        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true });
+        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId });
         var post = await postRepo.CreateAsync(new PostEntity 
         { 
             Name = "Original Name", 
             Content = "Original content",
-            ParentId = blog.BlogId
+            ParentId = blog.BlogId,
+            UserId = TestUserId
         });
         
         // Act
@@ -184,12 +189,13 @@ public class PostRepositoryTests
         var blogRepo = new BlogRepository(context);
         var postRepo = new PostRepository(context);
         
-        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true });
+        var blog = await blogRepo.CreateAsync(new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId });
         var post = await postRepo.CreateAsync(new PostEntity 
         { 
             Name = "Test Post Name", 
             Content = "Test content",
-            ParentId = blog.BlogId
+            ParentId = blog.BlogId,
+            UserId = TestUserId
         });
         
         // Act
@@ -200,4 +206,3 @@ public class PostRepositoryTests
         Assert.IsNull(deleted);
     }
 }
-

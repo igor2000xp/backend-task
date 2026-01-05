@@ -8,6 +8,8 @@ namespace BlogPlatform.Infrastructure.Tests.Configurations;
 [TestClass]
 public class BlogConfigurationTests
 {
+    private const string TestUserId = "test-user-id-123";
+
     private DbContextOptions<BlogsContext> GetInMemoryOptions()
     {
         return new DbContextOptionsBuilder<BlogsContext>()
@@ -22,8 +24,8 @@ public class BlogConfigurationTests
         var options = GetInMemoryOptions();
         using var context = new BlogsContext(options);
         
-        var blogActive = new BlogEntity { Name = "Active Blog Name", IsActive = true };
-        var blogInactive = new BlogEntity { Name = "Inactive Blog", IsActive = false };
+        var blogActive = new BlogEntity { Name = "Active Blog Name", IsActive = true, UserId = TestUserId };
+        var blogInactive = new BlogEntity { Name = "Inactive Blog", IsActive = false, UserId = TestUserId };
         
         // Act
         context.Blogs.Add(blogActive);
@@ -50,7 +52,7 @@ public class BlogConfigurationTests
         // Arrange
         var options = GetInMemoryOptions();
         using var context = new BlogsContext(options);
-        var invalidBlog = new BlogEntity { Name = "Bad" }; // Too short
+        var invalidBlog = new BlogEntity { Name = "Bad", UserId = TestUserId }; // Too short
         
         // Act & Assert
         context.Blogs.Add(invalidBlog);
@@ -71,7 +73,7 @@ public class BlogConfigurationTests
         // Arrange
         var options = GetInMemoryOptions();
         using var context = new BlogsContext(options);
-        var invalidBlog = new BlogEntity { Name = "Too long name exceeding the maximum fifty character limit here" };
+        var invalidBlog = new BlogEntity { Name = "Too long name exceeding the maximum fifty character limit here", UserId = TestUserId };
         
         // Act & Assert
         context.Blogs.Add(invalidBlog);
@@ -92,7 +94,7 @@ public class BlogConfigurationTests
         // Arrange
         var options = GetInMemoryOptions();
         using var context = new BlogsContext(options);
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         
         // Act
         context.Blogs.Add(blog);
@@ -109,7 +111,7 @@ public class BlogConfigurationTests
         var options = GetInMemoryOptions();
         using var context = new BlogsContext(options);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         context.Blogs.Add(blog);
         await context.SaveChangesAsync();
         
@@ -118,6 +120,7 @@ public class BlogConfigurationTests
             Name = "Test Post Name", 
             Content = "Test content",
             ParentId = blog.BlogId,
+            UserId = TestUserId,
             Created = DateTime.UtcNow
         };
         context.Posts.Add(post);
@@ -132,4 +135,3 @@ public class BlogConfigurationTests
         Assert.AreEqual(0, remainingPosts, "Posts should be cascade deleted with blog");
     }
 }
-

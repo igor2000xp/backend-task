@@ -55,6 +55,7 @@
 /Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Infrastructure/obj/Debug/net10.0/BlogPlatform.Infrastructure.AssemblyInfoInputs.cache
 /Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Infrastructure/obj/Debug/net10.0/BlogPlatform.Infrastructure.AssemblyInfo.cs
 /Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Infrastructure/obj/Debug/net10.0/BlogPlatform.Infrastructure.csproj.CoreCompileInputs.cache
+/Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Infrastructure/obj/Debug/net10.0/BlogPlatform.Infrastructure.sourcelink.json
 /Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Infrastructure/obj/Debug/net10.0/BlogPlat.7D6B46B3.Up2Date
 /Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Infrastructure/obj/Debug/net10.0/BlogPlatform.Infrastructure.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/src/BlogPlatform.Infrastructure/obj/Debug/net10.0/refint/BlogPlatform.Infrastructure.dll

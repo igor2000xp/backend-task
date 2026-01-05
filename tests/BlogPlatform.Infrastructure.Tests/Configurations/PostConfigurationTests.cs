@@ -7,6 +7,8 @@ namespace BlogPlatform.Infrastructure.Tests.Configurations;
 [TestClass]
 public class PostConfigurationTests
 {
+    private const string TestUserId = "test-user-id-123";
+
     [TestMethod]
     public async Task PostConfiguration_DataStoredAndRetrieved_Successfully()
     {
@@ -17,7 +19,7 @@ public class PostConfigurationTests
         
         using var context = new BlogsContext(options);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         context.Blogs.Add(blog);
         await context.SaveChangesAsync();
         
@@ -26,6 +28,7 @@ public class PostConfigurationTests
             Name = "Test Post Name", 
             Content = "Test content",
             ParentId = blog.BlogId,
+            UserId = TestUserId,
             Created = DateTime.UtcNow
         };
         
@@ -49,7 +52,7 @@ public class PostConfigurationTests
         
         using var context = new BlogsContext(options);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         context.Blogs.Add(blog);
         await context.SaveChangesAsync();
         
@@ -59,6 +62,7 @@ public class PostConfigurationTests
             Name = "Test Post Name", 
             Content = "Test content for the post",
             ParentId = blog.BlogId,
+            UserId = TestUserId,
             Created = DateTime.UtcNow
         };
         context.Posts.Add(post);
@@ -85,7 +89,7 @@ public class PostConfigurationTests
         
         using var context = new BlogsContext(options);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         context.Blogs.Add(blog);
         await context.SaveChangesAsync();
         
@@ -94,6 +98,7 @@ public class PostConfigurationTests
             Name = "Test Post Name", 
             Content = "Test content",
             ParentId = blog.BlogId,
+            UserId = TestUserId,
             Created = DateTime.UtcNow
         };
         
@@ -115,7 +120,7 @@ public class PostConfigurationTests
         
         using var context = new BlogsContext(options);
         
-        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true };
+        var blog = new BlogEntity { Name = "Test Blog Name", IsActive = true, UserId = TestUserId };
         context.Blogs.Add(blog);
         await context.SaveChangesAsync();
         
@@ -124,6 +129,7 @@ public class PostConfigurationTests
             Name = "Test Post Name", 
             Content = "Test content",
             ParentId = blog.BlogId,
+            UserId = TestUserId,
             Created = DateTime.UtcNow,
             Updated = null // Explicitly null
         };
@@ -138,4 +144,3 @@ public class PostConfigurationTests
         Assert.IsNull(savedPost.Updated);
     }
 }
-

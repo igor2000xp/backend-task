@@ -34,6 +34,75 @@ public class PostService : IPostService
         return posts.Select(MapToDto);
     }
 
+    public async Task<IEnumerable<PostDto>> GetUserPostsAsync(string userId)
+    {
+        var posts = await _postRepository.GetAllAsync();
+        return posts.Where(p => p.UserId == userId).Select(MapToDto);
+    }
+
+    public async Task<PostDto> CreatePostAsync(CreatePostRequest request, string userId)
+    {
+        // Verify blog exists
+        var blog = await _blogRepository.GetByIdAsync(request.BlogId);
+        if (blog == null)
+        {
+            throw new KeyNotFoundException($"Blog with ID {request.BlogId} not found");
+        }
+
+        var post = new PostEntity
+        {
+            Name = request.Name,
+            Content = request.Content,
+            ParentId = request.BlogId,
+            UserId = userId,
+            Created = DateTime.UtcNow
+        };
+
+        var created = await _postRepository.CreateAsync(post);
+        return MapToDto(created);
+    }
+
+    public async Task UpdatePostAsync(int id, UpdatePostRequest request, string userId, bool isAdmin)
+    {
+        var post = await _postRepository.GetByIdAsync(id);
+        if (post == null)
+        {
+            throw new KeyNotFoundException($"Post with ID {id} not found");
+        }
+
+        // Check ownership unless admin
+        if (!isAdmin && post.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to update this post.");
+        }
+
+        post.Name = request.Name;
+        post.Content = request.Content;
+        post.Updated = DateTime.UtcNow;
+
+        await _postRepository.UpdateAsync(post);
+    }
+
+    public async Task DeletePostAsync(int id, string userId, bool isAdmin)
+    {
+        var post = await _postRepository.GetByIdAsync(id);
+        if (post == null)
+        {
+            throw new KeyNotFoundException($"Post with ID {id} not found");
+        }
+
+        // Check ownership unless admin
+        if (!isAdmin && post.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to delete this post.");
+        }
+
+        await _postRepository.DeleteAsync(id);
+    }
+
+    #region Legacy methods for backward compatibility
+
+    [Obsolete("Use the overload with userId parameter")]
     public async Task<PostDto> CreatePostAsync(CreatePostRequest request)
     {
         // Verify blog exists
@@ -47,13 +116,16 @@ public class PostService : IPostService
         {
             Name = request.Name,
             Content = request.Content,
-            ParentId = request.BlogId
+            ParentId = request.BlogId,
+            UserId = string.Empty, // Will cause validation error if used improperly
+            Created = DateTime.UtcNow
         };
 
         var created = await _postRepository.CreateAsync(post);
         return MapToDto(created);
     }
 
+    [Obsolete("Use the overload with userId parameter")]
     public async Task UpdatePostAsync(int id, UpdatePostRequest request)
     {
         var post = await _postRepository.GetByIdAsync(id);
@@ -64,14 +136,18 @@ public class PostService : IPostService
 
         post.Name = request.Name;
         post.Content = request.Content;
+        post.Updated = DateTime.UtcNow;
 
         await _postRepository.UpdateAsync(post);
     }
 
+    [Obsolete("Use the overload with userId parameter")]
     public async Task DeletePostAsync(int id)
     {
         await _postRepository.DeleteAsync(id);
     }
+
+    #endregion
 
     private static PostDto MapToDto(PostEntity post)
     {
@@ -83,8 +159,9 @@ public class PostService : IPostService
             Created = post.Created,
             Updated = post.Updated,
             BlogId = post.ParentId,
-            BlogName = post.Blog?.Name ?? string.Empty
+            BlogName = post.Blog?.Name ?? string.Empty,
+            UserId = post.UserId,
+            AuthorName = post.User?.FullName ?? string.Empty
         };
     }
 }
-

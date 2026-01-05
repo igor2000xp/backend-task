@@ -79,8 +79,6 @@
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.Connections.Abstractions.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.CookiePolicy.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.Cors.dll
-/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.Cryptography.Internal.dll
-/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.DataProtection.Abstractions.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.DataProtection.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.AspNetCore.DataProtection.Extensions.dll
@@ -158,8 +156,6 @@
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.FileProviders.Composite.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.FileProviders.Embedded.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.Http.dll
-/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.Identity.Core.dll
-/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.Identity.Stores.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.Localization.Abstractions.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.Localization.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/refs/Microsoft.Extensions.Logging.TraceSource.dll
@@ -341,6 +337,10 @@
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Azure.Core.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Azure.Identity.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.ApplicationInsights.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.AspNetCore.Cryptography.Internal.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.AspNetCore.Mvc.Testing.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.AspNetCore.OpenApi.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.AspNetCore.TestHost.dll
@@ -375,6 +375,8 @@
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.FileSystemGlobbing.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.Hosting.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.Hosting.Abstractions.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.Identity.Core.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.Identity.Stores.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.Logging.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.Logging.Abstractions.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Microsoft.Extensions.Logging.Configuration.dll
@@ -421,12 +423,10 @@
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/testhost.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/MSTest.TestFramework.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Newtonsoft.Json.dll
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Scalar.AspNetCore.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/SQLitePCLRaw.batteries_v2.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/SQLitePCLRaw.core.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/SQLitePCLRaw.provider.e_sqlite3.dll
-/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Swashbuckle.AspNetCore.Swagger.dll
-/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerGen.dll
-/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/Swashbuckle.AspNetCore.SwaggerUI.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/System.ClientModel.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/System.Configuration.ConfigurationManager.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/bin/Debug/net10.0/System.Diagnostics.EventLog.dll
@@ -709,6 +709,7 @@
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/obj/Debug/net10.0/BlogPlatform.Integration.Tests.AssemblyInfoInputs.cache
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/obj/Debug/net10.0/BlogPlatform.Integration.Tests.AssemblyInfo.cs
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/obj/Debug/net10.0/BlogPlatform.Integration.Tests.csproj.CoreCompileInputs.cache
+/Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/obj/Debug/net10.0/BlogPlatform.Integration.Tests.sourcelink.json
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/obj/Debug/net10.0/BlogPlat.3ED32B86.Up2Date
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/obj/Debug/net10.0/BlogPlatform.Integration.Tests.dll
 /Volumes/MAC_DOCS/repos/vention/backend-task/tests/BlogPlatform.Integration.Tests/obj/Debug/net10.0/refint/BlogPlatform.Integration.Tests.dll
