@@ -1,0 +1,6 @@
+{
+  "BlogPlatform.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Volumes\/MAC_DOCS\/repos\/vention\/backend-task\/src\/BlogPlatform.Api",
+  "BlogPlatform.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Volumes\/MAC_DOCS\/repos\/vention\/backend-task\/src\/BlogPlatform.Application",
+  "BlogPlatform.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Volumes\/MAC_DOCS\/repos\/vention\/backend-task\/src\/BlogPlatform.Domain",
+  "BlogPlatform.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Volumes\/MAC_DOCS\/repos\/vention\/backend-task\/src\/BlogPlatform.Infrastructure"
+}
