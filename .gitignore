@@ -153,3 +153,6 @@ ScaffoldingReadMe.txt
 
 ## StyleCop
 StyleCopReport.xml
+
+## Cache files
+*.cache
