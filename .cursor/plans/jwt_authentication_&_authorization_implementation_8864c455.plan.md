@@ -134,8 +134,6 @@ flowchart TD
     ProtectedResources -->|Check Ownership| AuthorizationHandler[Resource Authorization]
 ```
 
-
-
 ## Phase 1: Database Schema & Entity Models
 
 ### 1.1 Add Identity Entities
@@ -165,8 +163,6 @@ public class ApplicationUser : IdentityUser
 }
 ```
 
-
-
 ### 1.2 Create Compromised Refresh Tokens Table
 
 **Location**: [`src/BlogPlatform.Domain/Entities/CompromisedRefreshToken.cs`](src/BlogPlatform.Domain/Entities/CompromisedRefreshToken.cs)
@@ -187,8 +183,6 @@ public class CompromisedRefreshToken
 }
 ```
 
-
-
 ### 1.3 Update Existing Entities for Ownership
 
 Add `UserId` (author) to [`src/BlogPlatform.Domain/Entities/BlogEntity.cs`](src/BlogPlatform.Domain/Entities/BlogEntity.cs):
@@ -208,8 +202,6 @@ public string UserId { get; set; } = string.Empty;
 
 public ApplicationUser User { get; set; } = null!;
 ```
-
-
 
 ### 1.4 Update DbContext
 
@@ -248,8 +240,6 @@ public class BlogsContext : IdentityDbContext<ApplicationUser>
 }
 ```
 
-
-
 ### 1.5 Entity Configurations
 
 **Location**: [`src/BlogPlatform.Infrastructure/Configurations/CompromisedRefreshTokenConfiguration.cs`](src/BlogPlatform.Infrastructure/Configurations/CompromisedRefreshTokenConfiguration.cs)
@@ -266,8 +256,6 @@ public class CompromisedRefreshTokenConfiguration : IEntityTypeConfiguration<Com
     }
 }
 ```
-
-
 
 ## Phase 2: NuGet Package Installation
 
@@ -289,8 +277,6 @@ Add to [`src/BlogPlatform.Application/BlogPlatform.Application.csproj`](src/Blog
 ```xml
 <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
 ```
-
-
 
 ## Phase 3: Configuration Setup
 
@@ -335,8 +321,6 @@ Update [`src/BlogPlatform.Api/appsettings.Production.json`](src/BlogPlatform.Api
 }
 ```
 
-
-
 ### 3.2 JWT Settings Model
 
 **Location**: [`src/BlogPlatform.Application/Configuration/JwtSettings.cs`](src/BlogPlatform.Application/Configuration/JwtSettings.cs)
@@ -351,8 +335,6 @@ public class JwtSettings
     public int RefreshTokenExpirationDays { get; set; } = 7;
 }
 ```
-
-
 
 ## Phase 4: Authentication Services Implementation
 
@@ -372,8 +354,6 @@ public interface ITokenService
     Task CleanupExpiredCompromisedTokensAsync();
 }
 ```
-
-
 
 ### 4.2 Token Service Implementation
 
@@ -407,8 +387,6 @@ public interface IAuthService
     Task<bool> RevokeAllTokensAsync(string userId);
 }
 ```
-
-
 
 ### 4.4 Authentication DTOs
 
@@ -450,8 +428,6 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new ResourceOwnerRequirement()));
 });
 ```
-
-
 
 ### 5.2 Resource Owner Authorization Handler
 
@@ -611,8 +587,6 @@ app.UseAuthorization();
 app.MapControllers();
 ```
 
-
-
 ### 7.1 Background Service for Token Cleanup
 
 **Location**: [`src/BlogPlatform.Api/BackgroundServices/TokenCleanupService.cs`](src/BlogPlatform.Api/BackgroundServices/TokenCleanupService.cs)
@@ -637,8 +611,6 @@ Register in Program.cs:
 builder.Services.AddHostedService<TokenCleanupService>();
 ```
 
-
-
 ## Phase 8: Database Migrations
 
 ### 8.1 Create Migration
@@ -649,8 +621,6 @@ dotnet ef migrations add AddIdentityAndAuthentication \
     --startup-project ../BlogPlatform.Api \
     --output-dir Migrations
 ```
-
-
 
 ### 8.2 Seed Initial Data
 
@@ -715,16 +685,12 @@ using (var scope = app.Services.CreateScope())
 }
 ```
 
-
-
 ### 8.3 Apply Migration
 
 ```bash
 cd src/BlogPlatform.Api
 dotnet ef database update --project ../BlogPlatform.Infrastructure
 ```
-
-
 
 ## Phase 9: Testing Strategy
 
@@ -792,8 +758,6 @@ public class AuthTestHelper
 }
 ```
 
-
-
 ## Phase 10: Security Hardening
 
 ### 10.1 Production Configuration Checklist
@@ -828,8 +792,6 @@ app.Use(async (context, next) =>
     await next();
 });
 ```
-
-
 
 ## Phase 11: Documentation
 
@@ -875,8 +837,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 ```
-
-
 
 ### 11.3 API Documentation
 
