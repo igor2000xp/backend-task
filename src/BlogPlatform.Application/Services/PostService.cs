@@ -100,55 +100,6 @@ public class PostService : IPostService
         await _postRepository.DeleteAsync(id);
     }
 
-    #region Legacy methods for backward compatibility
-
-    [Obsolete("Use the overload with userId parameter")]
-    public async Task<PostDto> CreatePostAsync(CreatePostRequest request)
-    {
-        // Verify blog exists
-        var blog = await _blogRepository.GetByIdAsync(request.BlogId);
-        if (blog == null)
-        {
-            throw new KeyNotFoundException($"Blog with ID {request.BlogId} not found");
-        }
-
-        var post = new PostEntity
-        {
-            Name = request.Name,
-            Content = request.Content,
-            ParentId = request.BlogId,
-            UserId = string.Empty, // Will cause validation error if used improperly
-            Created = DateTime.UtcNow
-        };
-
-        var created = await _postRepository.CreateAsync(post);
-        return MapToDto(created);
-    }
-
-    [Obsolete("Use the overload with userId parameter")]
-    public async Task UpdatePostAsync(int id, UpdatePostRequest request)
-    {
-        var post = await _postRepository.GetByIdAsync(id);
-        if (post == null)
-        {
-            throw new KeyNotFoundException($"Post with ID {id} not found");
-        }
-
-        post.Name = request.Name;
-        post.Content = request.Content;
-        post.Updated = DateTime.UtcNow;
-
-        await _postRepository.UpdateAsync(post);
-    }
-
-    [Obsolete("Use the overload with userId parameter")]
-    public async Task DeletePostAsync(int id)
-    {
-        await _postRepository.DeleteAsync(id);
-    }
-
-    #endregion
-
     private static PostDto MapToDto(PostEntity post)
     {
         return new PostDto

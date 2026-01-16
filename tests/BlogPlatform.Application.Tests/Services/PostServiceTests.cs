@@ -25,6 +25,7 @@ public class PostServiceTests
     public async Task CreatePostAsync_ValidRequest_ShouldReturnDto()
     {
         // Arrange
+        var userId = "test-user-id";
         var blog = new BlogEntity { BlogId = 1, Name = "Test Blog Name", IsActive = true };
         var request = new CreatePostRequest 
         { 
@@ -39,7 +40,8 @@ public class PostServiceTests
             Content = "Test content for the post",
             ParentId = 1,
             Created = DateTime.UtcNow,
-            Blog = blog
+            Blog = blog,
+            UserId = userId
         };
         
         _mockBlogRepository.Setup(r => r.GetByIdAsync(1))
@@ -48,13 +50,14 @@ public class PostServiceTests
                            .ReturnsAsync(expectedPost);
         
         // Act
-        var result = await _service.CreatePostAsync(request);
+        var result = await _service.CreatePostAsync(request, userId);
         
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(1, result.Id);
         Assert.AreEqual("Test Post Name", result.Name);
         Assert.AreEqual("Test content for the post", result.Content);
+        Assert.AreEqual(userId, result.UserId);
         _mockPostRepository.Verify(r => r.CreateAsync(It.IsAny<PostEntity>()), Times.Once);
     }
 
@@ -75,7 +78,7 @@ public class PostServiceTests
         // Act & Assert
         try
         {
-            await _service.CreatePostAsync(request);
+            await _service.CreatePostAsync(request, "user-id");
             Assert.Fail("Expected KeyNotFoundException was not thrown");
         }
         catch (KeyNotFoundException ex)
@@ -177,6 +180,7 @@ public class PostServiceTests
     public async Task UpdatePostAsync_ExistingPost_ShouldUpdateProperties()
     {
         // Arrange
+        var userId = "owner-id";
         var blog = new BlogEntity { BlogId = 1, Name = "Test Blog Name", IsActive = true };
         var post = new PostEntity 
         { 
@@ -185,7 +189,8 @@ public class PostServiceTests
             Content = "Original content",
             ParentId = 1,
             Created = DateTime.UtcNow,
-            Blog = blog
+            Blog = blog,
+            UserId = userId
         };
         var request = new UpdatePostRequest 
         { 
@@ -199,7 +204,7 @@ public class PostServiceTests
                            .Returns(Task.CompletedTask);
         
         // Act
-        await _service.UpdatePostAsync(1, request);
+        await _service.UpdatePostAsync(1, request, userId, isAdmin: false);
         
         // Assert
         Assert.AreEqual("Updated Post Name", post.Name);
@@ -218,7 +223,7 @@ public class PostServiceTests
         // Act & Assert
         try
         {
-            await _service.UpdatePostAsync(999, request);
+            await _service.UpdatePostAsync(999, request, "any-user", false);
             Assert.Fail("Expected KeyNotFoundException was not thrown");
         }
         catch (KeyNotFoundException ex)
@@ -228,17 +233,20 @@ public class PostServiceTests
     }
 
     [TestMethod]
-    public async Task DeletePostAsync_ShouldCallRepository()
+    public async Task DeletePostAsync_Owner_ShouldCallRepository()
     {
         // Arrange
+        var userId = "owner-id";
+        var post = new PostEntity { PostId = 1, UserId = userId };
+        _mockPostRepository.Setup(r => r.GetByIdAsync(1))
+                           .ReturnsAsync(post);
         _mockPostRepository.Setup(r => r.DeleteAsync(1))
                            .Returns(Task.CompletedTask);
         
         // Act
-        await _service.DeletePostAsync(1);
+        await _service.DeletePostAsync(1, userId, isAdmin: false);
         
         // Assert
         _mockPostRepository.Verify(r => r.DeleteAsync(1), Times.Once);
     }
 }
-

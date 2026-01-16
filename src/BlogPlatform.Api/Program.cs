@@ -2,17 +2,10 @@ using System.Text;
 using System.Threading.RateLimiting;
 using BlogPlatform.Api.BackgroundServices;
 using BlogPlatform.Api.OpenApi;
-using BlogPlatform.Application.Authorization;
+using BlogPlatform.Application;
 using BlogPlatform.Application.Configuration;
-using BlogPlatform.Application.Services;
-using BlogPlatform.Application.Services.Interfaces;
-using BlogPlatform.Domain.Entities;
-using BlogPlatform.Domain.Interfaces;
-using BlogPlatform.Infrastructure.Data;
-using BlogPlatform.Infrastructure.Repositories;
+using BlogPlatform.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -30,60 +23,23 @@ var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 
 // ============================================
-// 2. Database Configuration
+// 2. Layer-Based Dependency Injection
 // ============================================
 
-// Skip database registration for Testing environment - tests configure their own InMemory database
-if (!builder.Environment.IsEnvironment("Testing"))
-{
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<BlogsContext>(options =>
-{
-    if (builder.Environment.IsDevelopment())
-    {
-        options.UseSqlite(connectionString);
-    }
-    else
-    {
-        options.UseSqlServer(connectionString);
-    }
-});
-}
+// Register Infrastructure Services (Database, Identity, Repositories)
+builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
+
+// Register Application Services (Services, Auth Handlers)
+builder.Services.AddApplicationServices();
 
 // ============================================
-// 3. Identity Configuration
+// 3. API Specific Configuration
 // ============================================
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-{
-    // Password settings
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
-    options.Password.RequiredUniqueChars = 4;
-    
-    // User settings
-    options.User.RequireUniqueEmail = true;
-    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-    
-    // Lockout settings
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-    options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-    
-    // SignIn settings
-    options.SignIn.RequireConfirmedEmail = false; // Set to true when email service is implemented
-    options.SignIn.RequireConfirmedAccount = false;
-})
-.AddEntityFrameworkStores<BlogsContext>()
-.AddDefaultTokenProviders();
+// Background Services
+builder.Services.AddHostedService<TokenCleanupService>();
 
-// ============================================
-// 4. JWT Authentication Configuration
-// ============================================
-
+// JWT Authentication Configuration
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -126,51 +82,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// ============================================
-// 5. Authorization Configuration
-// ============================================
-
+// Authorization Configuration
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("UserOrAdmin", policy => policy.RequireRole("User", "Admin"));
     options.AddPolicy("ResourceOwner", policy => 
-        policy.Requirements.Add(new ResourceOwnerRequirement()));
+        policy.Requirements.Add(new BlogPlatform.Application.Authorization.ResourceOwnerRequirement()));
 });
 
-// Register authorization handlers
-builder.Services.AddScoped<IAuthorizationHandler, ResourceOwnerAuthorizationHandler>();
-
-// ============================================
-// 6. Repository Registration
-// ============================================
-
-builder.Services.AddScoped<IBlogRepository, BlogRepository>();
-builder.Services.AddScoped<IPostRepository, PostRepository>();
-
-// ============================================
-// 7. Service Registration
-// ============================================
-
-// Application services
-builder.Services.AddScoped<IBlogService, BlogService>();
-builder.Services.AddScoped<IPostService, PostService>();
-
-// Authentication services
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-
-// ============================================
-// 8. Background Services
-// ============================================
-
-builder.Services.AddHostedService<TokenCleanupService>();
-
-// ============================================
-// 9. Rate Limiting Configuration
-// ============================================
-
+// Rate Limiting Configuration
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -234,16 +155,10 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
-// ============================================
-// 10. Controllers and API
-// ============================================
-
+// Controllers and API
 builder.Services.AddControllers();
 
-// ============================================
-// 11. OpenAPI Configuration with JWT Support
-// ============================================
-
+// OpenAPI Configuration with JWT Support
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -261,7 +176,7 @@ builder.Services.AddOpenApi(options =>
 var app = builder.Build();
 
 // ============================================
-// 12. Database Initialization & Seeding
+// 4. Database Initialization & Seeding
 // ============================================
 
 // Skip database initialization for Testing environment (handled by test factory)
@@ -274,9 +189,9 @@ if (!app.Environment.IsEnvironment("Testing"))
         
         try
         {
-            var context = services.GetRequiredService<BlogsContext>();
-            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var context = services.GetRequiredService<BlogPlatform.Infrastructure.Data.BlogsContext>();
+            var userManager = services.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<BlogPlatform.Domain.Entities.ApplicationUser>>();
+            var roleManager = services.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole>>();
             
             // Apply pending migrations in development
             if (app.Environment.IsDevelopment())
@@ -285,7 +200,7 @@ if (!app.Environment.IsEnvironment("Testing"))
             }
             
             // Seed roles and default users
-            await SeedData.InitializeAsync(services, userManager, roleManager);
+            await BlogPlatform.Infrastructure.Data.SeedData.InitializeAsync(services, userManager, roleManager);
             
             logger.LogInformation("Database initialization completed successfully");
         }
@@ -298,7 +213,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 }
 
 // ============================================
-// 13. Middleware Pipeline
+// 5. Middleware Pipeline
 // ============================================
 
 // Development-only middleware
@@ -308,8 +223,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(options =>
     {
         options.WithTitle("Blog Platform API")
-               .WithTheme(ScalarTheme.BluePlanet)
-               .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        .WithTheme(ScalarTheme.BluePlanet)
+        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
     });
 }
 

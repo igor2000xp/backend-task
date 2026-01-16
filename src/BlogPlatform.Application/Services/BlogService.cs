@@ -82,47 +82,6 @@ public class BlogService : IBlogService
         await _blogRepository.DeleteAsync(id);
     }
 
-    #region Legacy methods for backward compatibility
-
-    [Obsolete("Use the overload with userId parameter")]
-    public async Task<BlogDto> CreateBlogAsync(CreateBlogRequest request)
-    {
-        // This method should only be used in tests or internal code
-        // In production, always use the userId overload
-        var blog = new BlogEntity
-        {
-            Name = request.Name,
-            IsActive = request.IsActive,
-            UserId = string.Empty // Will cause validation error if used improperly
-        };
-
-        var created = await _blogRepository.CreateAsync(blog);
-        return MapToDto(created);
-    }
-
-    [Obsolete("Use the overload with userId parameter")]
-    public async Task UpdateBlogAsync(int id, UpdateBlogRequest request)
-    {
-        var blog = await _blogRepository.GetByIdAsync(id);
-        if (blog == null)
-        {
-            throw new KeyNotFoundException($"Blog with ID {id} not found");
-        }
-
-        blog.Name = request.Name;
-        blog.IsActive = request.IsActive;
-
-        await _blogRepository.UpdateAsync(blog);
-    }
-
-    [Obsolete("Use the overload with userId parameter")]
-    public async Task DeleteBlogAsync(int id)
-    {
-        await _blogRepository.DeleteAsync(id);
-    }
-
-    #endregion
-
     private static BlogDto MapToDto(BlogEntity blog)
     {
         return new BlogDto

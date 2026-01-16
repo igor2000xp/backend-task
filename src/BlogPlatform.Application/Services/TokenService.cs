@@ -5,8 +5,7 @@ using System.Text;
 using BlogPlatform.Application.Configuration;
 using BlogPlatform.Application.Services.Interfaces;
 using BlogPlatform.Domain.Entities;
-using BlogPlatform.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using BlogPlatform.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,17 +18,17 @@ namespace BlogPlatform.Application.Services;
 public class TokenService : ITokenService
 {
     private readonly JwtSettings _jwtSettings;
-    private readonly BlogsContext _context;
+    private readonly ICompromisedRefreshTokenRepository _repository;
     private readonly ILogger<TokenService> _logger;
     private readonly SymmetricSecurityKey _signingKey;
 
     public TokenService(
         IOptions<JwtSettings> jwtSettings,
-        BlogsContext context,
+        ICompromisedRefreshTokenRepository repository,
         ILogger<TokenService> logger)
     {
         _jwtSettings = jwtSettings.Value;
-        _context = context;
+        _repository = repository;
         _logger = logger;
         _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
     }
@@ -137,8 +136,7 @@ public class TokenService : ITokenService
     {
         var tokenHash = HashToken(refreshToken);
         
-        var isCompromised = await _context.CompromisedRefreshTokens
-            .AnyAsync(t => t.TokenHash == tokenHash);
+        var isCompromised = await _repository.IsCompromisedAsync(tokenHash);
         
         if (isCompromised)
         {
@@ -153,25 +151,18 @@ public class TokenService : ITokenService
     {
         var tokenHash = HashToken(refreshToken);
         
-        // Check if already exists to prevent duplicates
-        var exists = await _context.CompromisedRefreshTokens
-            .AnyAsync(t => t.TokenHash == tokenHash);
-        
-        if (!exists)
+        // Repository handles duplicate check
+        var compromisedToken = new CompromisedRefreshToken
         {
-            var compromisedToken = new CompromisedRefreshToken
-            {
-                TokenHash = tokenHash,
-                CompromisedAt = DateTime.UtcNow,
-                ExpiresAt = GetRefreshTokenExpiration(),
-                Reason = reason
-            };
-            
-            _context.CompromisedRefreshTokens.Add(compromisedToken);
-            await _context.SaveChangesAsync();
-            
-            _logger.LogInformation("Refresh token compromised: {Reason}", reason);
-        }
+            TokenHash = tokenHash,
+            CompromisedAt = DateTime.UtcNow,
+            ExpiresAt = GetRefreshTokenExpiration(),
+            Reason = reason
+        };
+        
+        await _repository.AddAsync(compromisedToken);
+        
+        _logger.LogInformation("Refresh token compromised: {Reason}", reason);
     }
 
     /// <inheritdoc />
@@ -179,17 +170,9 @@ public class TokenService : ITokenService
     {
         var now = DateTime.UtcNow;
         
-        var expiredTokens = await _context.CompromisedRefreshTokens
-            .Where(t => t.ExpiresAt < now)
-            .ToListAsync();
+        await _repository.RemoveExpiredAsync(now);
         
-        if (expiredTokens.Count > 0)
-        {
-            _context.CompromisedRefreshTokens.RemoveRange(expiredTokens);
-            await _context.SaveChangesAsync();
-            
-            _logger.LogInformation("Cleaned up {Count} expired compromised tokens", expiredTokens.Count);
-        }
+        _logger.LogInformation("Cleaned up expired compromised tokens");
     }
 
     /// <inheritdoc />
@@ -226,4 +209,3 @@ public class TokenService : ITokenService
         return Convert.ToBase64String(hash);
     }
 }
-

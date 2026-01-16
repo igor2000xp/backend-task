@@ -27,14 +27,4 @@ public interface IPostService
     /// Deletes a post. Throws UnauthorizedAccessException if user doesn't own the post (unless admin).
     /// </summary>
     Task DeletePostAsync(int id, string userId, bool isAdmin);
-    
-    // Legacy methods for backward compatibility (internal use only)
-    [Obsolete("Use the overload with userId parameter")]
-    Task<PostDto> CreatePostAsync(CreatePostRequest request);
-    
-    [Obsolete("Use the overload with userId parameter")]
-    Task UpdatePostAsync(int id, UpdatePostRequest request);
-    
-    [Obsolete("Use the overload with userId parameter")]
-    Task DeletePostAsync(int id);
 }

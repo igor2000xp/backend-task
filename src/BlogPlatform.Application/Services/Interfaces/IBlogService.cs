@@ -26,14 +26,4 @@ public interface IBlogService
     /// Deletes a blog. Throws UnauthorizedAccessException if user doesn't own the blog (unless admin).
     /// </summary>
     Task DeleteBlogAsync(int id, string userId, bool isAdmin);
-    
-    // Legacy methods for backward compatibility (internal use only)
-    [Obsolete("Use the overload with userId parameter")]
-    Task<BlogDto> CreateBlogAsync(CreateBlogRequest request);
-    
-    [Obsolete("Use the overload with userId parameter")]
-    Task UpdateBlogAsync(int id, UpdateBlogRequest request);
-    
-    [Obsolete("Use the overload with userId parameter")]
-    Task DeleteBlogAsync(int id);
 }

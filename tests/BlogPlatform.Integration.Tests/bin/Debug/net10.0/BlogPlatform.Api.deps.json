@@ -1097,7 +1097,6 @@
       "BlogPlatform.Application/1.0.0": {
         "dependencies": {
           "BlogPlatform.Domain": "1.0.0",
-          "BlogPlatform.Infrastructure": "1.0.0",
           "System.IdentityModel.Tokens.Jwt": "8.2.1"
         },
         "runtime": {

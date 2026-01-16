@@ -2639,7 +2639,6 @@
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
           "BlogPlatform.Domain": "1.0.0",
-          "BlogPlatform.Infrastructure": "1.0.0",
           "System.IdentityModel.Tokens.Jwt": "8.2.1"
         },
         "compile": {
@@ -2680,7 +2679,10 @@
         },
         "runtime": {
           "bin/placeholder/BlogPlatform.Infrastructure.dll": {}
-        }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
       }
     }
   },

@@ -2,8 +2,7 @@ using System.Security.Claims;
 using BlogPlatform.Application.Configuration;
 using BlogPlatform.Application.Services;
 using BlogPlatform.Domain.Entities;
-using BlogPlatform.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using BlogPlatform.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -16,7 +15,7 @@ namespace BlogPlatform.Application.Tests.Services;
 [TestClass]
 public class TokenServiceTests
 {
-    private BlogsContext _context = null!;
+    private Mock<ICompromisedRefreshTokenRepository> _repositoryMock = null!;
     private TokenService _tokenService = null!;
     private JwtSettings _jwtSettings = null!;
     private Mock<ILogger<TokenService>> _loggerMock = null!;
@@ -24,10 +23,7 @@ public class TokenServiceTests
     [TestInitialize]
     public void Setup()
     {
-        var options = new DbContextOptionsBuilder<BlogsContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-            .Options;
-        _context = new BlogsContext(options);
+        _repositoryMock = new Mock<ICompromisedRefreshTokenRepository>();
 
         _jwtSettings = new JwtSettings
         {
@@ -40,13 +36,7 @@ public class TokenServiceTests
 
         _loggerMock = new Mock<ILogger<TokenService>>();
         var jwtOptions = Options.Create(_jwtSettings);
-        _tokenService = new TokenService(jwtOptions, _context, _loggerMock.Object);
-    }
-
-    [TestCleanup]
-    public void Cleanup()
-    {
-        _context.Dispose();
+        _tokenService = new TokenService(jwtOptions, _repositoryMock.Object, _loggerMock.Object);
     }
 
     [TestMethod]
@@ -200,6 +190,8 @@ public class TokenServiceTests
     {
         // Arrange
         var refreshToken = _tokenService.GenerateRefreshToken();
+        _repositoryMock.Setup(r => r.IsCompromisedAsync(It.IsAny<string>()))
+            .ReturnsAsync(false);
 
         // Act
         var isCompromised = await _tokenService.IsRefreshTokenCompromisedAsync(refreshToken);
@@ -213,44 +205,23 @@ public class TokenServiceTests
     {
         // Arrange
         var refreshToken = _tokenService.GenerateRefreshToken();
+        _repositoryMock.Setup(r => r.IsCompromisedAsync(It.IsAny<string>()))
+            .ReturnsAsync(true); // Simulate it being found after addition (though this test checks the Add call)
 
         // Act
         await _tokenService.CompromiseRefreshTokenAsync(refreshToken, "Test reason");
-        var isCompromised = await _tokenService.IsRefreshTokenCompromisedAsync(refreshToken);
-
+        
         // Assert
-        Assert.IsTrue(isCompromised);
-        Assert.AreEqual(1, await _context.CompromisedRefreshTokens.CountAsync());
+        _repositoryMock.Verify(r => r.AddAsync(It.IsAny<CompromisedRefreshToken>()), Times.Once);
     }
 
     [TestMethod]
     public async Task CleanupExpiredCompromisedTokensAsync_RemovesExpiredTokens()
     {
-        // Arrange
-        var expiredToken = new CompromisedRefreshToken
-        {
-            TokenHash = "expired-hash",
-            CompromisedAt = DateTime.UtcNow.AddDays(-10),
-            ExpiresAt = DateTime.UtcNow.AddDays(-3),
-            Reason = "Expired"
-        };
-        var validToken = new CompromisedRefreshToken
-        {
-            TokenHash = "valid-hash",
-            CompromisedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(7),
-            Reason = "Still valid"
-        };
-        _context.CompromisedRefreshTokens.AddRange(expiredToken, validToken);
-        await _context.SaveChangesAsync();
-
         // Act
         await _tokenService.CleanupExpiredCompromisedTokensAsync();
 
         // Assert
-        var remainingTokens = await _context.CompromisedRefreshTokens.ToListAsync();
-        Assert.AreEqual(1, remainingTokens.Count);
-        Assert.AreEqual("valid-hash", remainingTokens[0].TokenHash);
+        _repositoryMock.Verify(r => r.RemoveExpiredAsync(It.IsAny<DateTime>()), Times.Once);
     }
 }
-

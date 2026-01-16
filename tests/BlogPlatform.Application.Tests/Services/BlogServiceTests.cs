@@ -24,18 +24,20 @@ public class BlogServiceTests
     public async Task CreateBlogAsync_ValidRequest_ShouldReturnDto()
     {
         // Arrange
+        var userId = "test-user-id";
         var request = new CreateBlogRequest { Name = "Test Blog Name", IsActive = true };
-        var expectedBlog = new BlogEntity { BlogId = 1, Name = "Test Blog Name", IsActive = true };
+        var expectedBlog = new BlogEntity { BlogId = 1, Name = "Test Blog Name", IsActive = true, UserId = userId };
         _mockRepository.Setup(r => r.CreateAsync(It.IsAny<BlogEntity>()))
                        .ReturnsAsync(expectedBlog);
         
         // Act
-        var result = await _service.CreateBlogAsync(request);
+        var result = await _service.CreateBlogAsync(request, userId);
         
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(1, result.Id);
         Assert.AreEqual("Test Blog Name", result.Name);
+        Assert.AreEqual(userId, result.UserId);
         Assert.IsTrue(result.IsActive);
         _mockRepository.Verify(r => r.CreateAsync(It.IsAny<BlogEntity>()), Times.Once);
     }
@@ -94,10 +96,11 @@ public class BlogServiceTests
     }
 
     [TestMethod]
-    public async Task UpdateBlogAsync_ExistingBlog_ShouldUpdateProperties()
+    public async Task UpdateBlogAsync_ExistingBlogAndOwner_ShouldUpdateProperties()
     {
         // Arrange
-        var blog = new BlogEntity { BlogId = 1, Name = "Original Name", IsActive = true };
+        var userId = "owner-id";
+        var blog = new BlogEntity { BlogId = 1, Name = "Original Name", IsActive = true, UserId = userId };
         var request = new UpdateBlogRequest { Name = "Updated Blog Name", IsActive = false };
         
         _mockRepository.Setup(r => r.GetByIdAsync(1))
@@ -106,7 +109,7 @@ public class BlogServiceTests
                        .Returns(Task.CompletedTask);
         
         // Act
-        await _service.UpdateBlogAsync(1, request);
+        await _service.UpdateBlogAsync(1, request, userId, isAdmin: false);
         
         // Assert
         Assert.AreEqual("Updated Blog Name", blog.Name);
@@ -125,7 +128,7 @@ public class BlogServiceTests
         // Act & Assert
         try
         {
-            await _service.UpdateBlogAsync(999, request);
+            await _service.UpdateBlogAsync(999, request, "any-user", false);
             Assert.Fail("Expected KeyNotFoundException was not thrown");
         }
         catch (KeyNotFoundException ex)
@@ -135,14 +138,18 @@ public class BlogServiceTests
     }
 
     [TestMethod]
-    public async Task DeleteBlogAsync_ShouldCallRepository()
+    public async Task DeleteBlogAsync_Owner_ShouldCallRepository()
     {
         // Arrange
+        var userId = "owner-id";
+        var blog = new BlogEntity { BlogId = 1, UserId = userId };
+        _mockRepository.Setup(r => r.GetByIdAsync(1))
+                       .ReturnsAsync(blog);
         _mockRepository.Setup(r => r.DeleteAsync(1))
                        .Returns(Task.CompletedTask);
         
         // Act
-        await _service.DeleteBlogAsync(1);
+        await _service.DeleteBlogAsync(1, userId, isAdmin: false);
         
         // Assert
         _mockRepository.Verify(r => r.DeleteAsync(1), Times.Once);
@@ -174,4 +181,3 @@ public class BlogServiceTests
         Assert.AreEqual(2, result.ArticleCount);
     }
 }
-
