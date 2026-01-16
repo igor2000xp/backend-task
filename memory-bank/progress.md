@@ -42,6 +42,7 @@
 ### ✅ Documentation
 - README.md with comprehensive documentation
 - API documentation via OpenAPI/Scalar
+- Postman Collection and Environment for API testing
 - Code comments and XML documentation
 - Refactoring plan documentation
 

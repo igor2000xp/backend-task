@@ -2,6 +2,15 @@
 
 ## Current Focus
 
+### Postman API Testing Setup
+
+**Completed**: Generated Postman environment and collection files for comprehensive API testing.
+
+#### Files Created:
+1. `postman_environment.json`: Environment variables (baseUrl, tokens, IDs)
+2. `postman_collection.json`: All API endpoints (Auth, Blogs, Posts) with automated token management
+3. `README_POSTMAN.md`: Setup and usage instructions
+
 ### Recent Refactoring: Code Organization
 
 **Completed**: Refactored dependency injection and Program.cs organization to improve maintainability and follow Clean Architecture principles.
