@@ -105,6 +105,7 @@ The solution follows Clean Architecture with clear separation of concerns across
 │   - DTOs                                │
 │   - Authentication Services             │
 │   - Authorization Handlers              │
+│   - DependencyInjection.cs              │
 └─────────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────────┐
@@ -113,6 +114,7 @@ The solution follows Clean Architecture with clear separation of concerns across
 │   - ASP.NET Core Identity               │
 │   - Repositories                        │
 │   - Database Configurations             │
+│   - DependencyInjection.cs              │
 └─────────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────────┐
@@ -122,6 +124,62 @@ The solution follows Clean Architecture with clear separation of concerns across
 │   - Validation Rules                    │
 └─────────────────────────────────────────┘
 ```
+
+### Code Organization & Dependency Injection
+
+The project uses **extension methods** for dependency injection to maintain clean separation of concerns and improve maintainability:
+
+#### Application Layer DI (`BlogPlatform.Application/DependencyInjection.cs`)
+```csharp
+public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+{
+    // Application services
+    services.AddScoped<IBlogService, BlogService>();
+    services.AddScoped<IPostService, PostService>();
+    
+    // Authentication services
+    services.AddScoped<ITokenService, TokenService>();
+    services.AddScoped<IAuthService, AuthService>();
+    services.AddScoped<IEmailService, EmailService>();
+    
+    // Authorization handlers
+    services.AddScoped<IAuthorizationHandler, ResourceOwnerAuthorizationHandler>();
+    
+    return services;
+}
+```
+
+#### Infrastructure Layer DI (`BlogPlatform.Infrastructure/DependencyInjection.cs`)
+```csharp
+public static IServiceCollection AddInfrastructureServices(
+    this IServiceCollection services, 
+    IConfiguration configuration, 
+    IHostEnvironment environment)
+{
+    // Database configuration
+    // Identity configuration
+    // Repository registration
+    
+    return services;
+}
+```
+
+#### Program.cs Organization
+
+The `Program.cs` file is organized into clear sections for better readability and maintainability:
+
+1. **Configuration**: JWT settings and configuration setup
+2. **Layer-Based Dependency Injection**: Calls to extension methods (`AddApplicationServices`, `AddInfrastructureServices`)
+3. **API Specific Configuration**: Background services, authentication, authorization, rate limiting
+4. **Database Initialization & Seeding**: Migration and seed data logic
+5. **Middleware Pipeline**: Security headers, rate limiting, authentication, authorization
+
+**Benefits:**
+- ✅ Improved code maintainability
+- ✅ Better adherence to Clean Architecture principles
+- ✅ Clear layer boundaries
+- ✅ Easier to test and modify service registrations
+- ✅ Reduced complexity in Program.cs
 
 ## Technology Stack
 
@@ -373,6 +431,7 @@ BlogPlatform/
 │   ├── BlogPlatform.Application/
 │   │   ├── Configuration/
 │   │   │   └── JwtSettings.cs
+│   │   ├── DependencyInjection.cs      # DI extension method
 │   │   ├── DTOs/Auth/
 │   │   │   ├── RegisterRequest.cs
 │   │   │   ├── LoginRequest.cs
@@ -386,6 +445,7 @@ BlogPlatform/
 │   │       └── EmailService.cs (stub)
 │   │
 │   ├── BlogPlatform.Infrastructure/
+│   │   ├── DependencyInjection.cs      # DI extension method
 │   │   ├── Data/
 │   │   │   ├── BlogsContext.cs          # IdentityDbContext
 │   │   │   └── SeedData.cs
